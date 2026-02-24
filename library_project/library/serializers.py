@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book, LibraryMember, LibraryTransaction, TransactionItem, LibrarySettings
+from .models import Book,  LibraryTransaction, TransactionItem
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,37 +9,33 @@ class BookSerializer(serializers.ModelSerializer):
 class TransectionItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionItem
-        feilds = ['book']
+        fields = ['book']
 
 class LibraryTransectionSerializer(serializers.ModelSerializer):
     
-    item = TransectionItemSerializer(many=True)
+    items = TransectionItemSerializer(many=True)
 
     class Meta:
         model = LibraryTransaction
-        feilds = ['id','posting_date','due_date','created_at','member_link_id']
+        fields = ['id','member_link','due_date','items']
 
-        def create(self,validate_data):
+    def create(self,validate_data):
 
             item_data = validate_data.pop('items')
-            member = validate_data['membership_id']
+            member = validate_data['member_link']
 
             # rule 1 (unpaid fines)
             if member.total_unpaid_fines > 50:
-                raise serializers.ValidationError(
-                    "Member has unpaid fines above limit"
-                )
+                raise serializers.ValidationError("Member has unpaid fines above limit")
             
             # rule 2
             issued_book = TransactionItem.objects.filter(
-                transection_member = member,
-                transection_due_data_isnull = False
+                transaction__member_link=member,
+                return_date__isnull=True
             ).count()
 
-            if issued_book + len(item_data) > 3:
-                raise serializers.ValidationError(
-                    "Maximum 3 books allowed"
-                )
+            if issued_book + len(item_data) >= 3:
+                raise serializers.ValidationError("Maximum 3 books allowed")
             
             # transection
             transection = LibraryTransaction.objects.create(
@@ -55,7 +51,7 @@ class LibraryTransectionSerializer(serializers.ModelSerializer):
                         f"{book.title} not Available"
                     )
                 TransactionItem.objects.create(
-                    transection=transection,
+                    transaction=transection,
                     book=book
                 )
 
