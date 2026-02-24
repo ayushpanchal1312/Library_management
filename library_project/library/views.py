@@ -4,8 +4,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import BookSerializer
 from .serializers import LibraryTransectionSerializer
-from .models import Book , TransactionItem , LibraryTransaction , LibrarySettings
+from .serializers import LibraryMemberSerializer
+from .models import Book , TransactionItem , LibrarySettings,LibraryMember
 from django.utils import timezone
+
+@api_view(['POST'])
+def add_member(request):
+    Serializer = LibraryMemberSerializer(data=request.data)
+    if Serializer.is_valid():
+        Serializer.save()
+        return Response(Serializer.data,status=status.HTTP_201_CREATED)
+    return Response(Serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def book_list(request):
@@ -33,15 +42,6 @@ def add_book(request):
         return Response(serializer.data,status=status.HTTP_201_CREATED)
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-def search(request,id):
-    try:
-        book = Book.objects.get(id=id)
-        serializer = BookSerializer(book)
-        return Response(serializer.data)
-    except Book.DoesNotExist:
-        return Response({"error:Book Not Found"},status=status.HTTP_404_NOT_FOUND)
-
 @api_view(['PUT'])
 def update(request,id):
     try:
@@ -52,6 +52,15 @@ def update(request,id):
             return Response({"message": "Book details updated"},status=status.HTTP_200_OK)
     except Book.DoesNotExist:
         return Response({"error:Book not found"},status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def search(request,id):
+    try:
+        book = Book.objects.get(id=id)
+        serializer = BookSerializer(book)
+        return Response(serializer.data)
+    except Book.DoesNotExist:
+        return Response({"error:Book Not Found"},status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
 def delete(request,id):
@@ -70,6 +79,7 @@ def issue_book(request):
         return Response(serializer.data)
 
     return Response(serializer.errors,status=400)
+
 @api_view(['POST'])
 def return_book(request,item_id):
     try:

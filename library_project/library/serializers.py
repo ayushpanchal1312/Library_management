@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import Book,  LibraryTransaction, TransactionItem
+from .models import Book,  LibraryTransaction, TransactionItem, LibraryMember
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = '__all__'
 
+class LibraryMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LibraryMember
+        fields =  '__all__'
+        
 class TransectionItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionItem

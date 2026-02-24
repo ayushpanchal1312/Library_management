@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import book_list, add_book, search,update,delete,return_book,available_books,issue_book
+from .views import book_list, add_book, search,update,delete,return_book,available_books,issue_book,add_member
 
 urlpatterns = [
+    path('add-member/', add_member),
     path('books/',book_list),
     path('available-books/',available_books),
     path('add-books/',add_book),
